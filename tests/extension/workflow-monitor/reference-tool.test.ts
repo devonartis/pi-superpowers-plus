@@ -8,6 +8,13 @@ describe("REFERENCE_TOPICS", () => {
     expect(REFERENCE_TOPICS).toContain("tdd-when-stuck");
     expect(REFERENCE_TOPICS).toContain("tdd-anti-patterns");
   });
+
+  test("includes debug topics", () => {
+    expect(REFERENCE_TOPICS).toContain("debug-rationalizations");
+    expect(REFERENCE_TOPICS).toContain("debug-tracing");
+    expect(REFERENCE_TOPICS).toContain("debug-defense-in-depth");
+    expect(REFERENCE_TOPICS).toContain("debug-condition-waiting");
+  });
 });
 
 describe("loadReference", () => {
@@ -30,6 +37,30 @@ describe("loadReference", () => {
   test("loads tdd-when-stuck", async () => {
     const content = await loadReference("tdd-when-stuck");
     expect(content).toContain("When Stuck");
+  });
+
+  test("loads debug-rationalizations topic", async () => {
+    const content = await loadReference("debug-rationalizations");
+    expect(content).toContain("Rationalizations");
+    expect(content).not.toContain("file not found");
+  });
+
+  test("loads debug-tracing topic", async () => {
+    const content = await loadReference("debug-tracing");
+    expect(content).toContain("Root Cause");
+    expect(content).not.toContain("file not found");
+  });
+
+  test("loads debug-defense-in-depth topic", async () => {
+    const content = await loadReference("debug-defense-in-depth");
+    expect(content).toContain("Defense");
+    expect(content).not.toContain("file not found");
+  });
+
+  test("loads debug-condition-waiting topic", async () => {
+    const content = await loadReference("debug-condition-waiting");
+    expect(content).toContain("condition");
+    expect(content).not.toContain("file not found");
   });
 
   test("returns error for unknown topic", async () => {

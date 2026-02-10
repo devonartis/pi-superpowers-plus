@@ -10,6 +10,10 @@ const TOPIC_MAP: Record<string, string> = {
   "tdd-examples": "skills/test-driven-development/reference/examples.md",
   "tdd-when-stuck": "skills/test-driven-development/reference/when-stuck.md",
   "tdd-anti-patterns": "skills/test-driven-development/testing-anti-patterns.md",
+  "debug-rationalizations": "skills/systematic-debugging/reference/rationalizations.md",
+  "debug-tracing": "skills/systematic-debugging/root-cause-tracing.md",
+  "debug-defense-in-depth": "skills/systematic-debugging/defense-in-depth.md",
+  "debug-condition-waiting": "skills/systematic-debugging/condition-based-waiting.md",
 };
 
 export const REFERENCE_TOPICS = Object.keys(TOPIC_MAP);
