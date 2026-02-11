@@ -30,6 +30,7 @@ import {
   type WorkflowTrackerState,
 } from "./workflow-monitor/workflow-tracker";
 import { getTransitionPrompt } from "./workflow-monitor/workflow-transitions";
+import { getCurrentGitRef } from "./workflow-monitor/git";
 
 export default function (pi: ExtensionAPI) {
   const handler = createWorkflowHandler();
@@ -38,6 +39,9 @@ export default function (pi: ExtensionAPI) {
   // Scoped here because tool_call and tool_result fire sequentially per call.
   let pendingViolation: Violation | null = null;
   let pendingVerificationViolation: VerificationViolation | null = null;
+  let branchNoticeShown = false;
+  let branchConfirmed = false;
+  let pendingBranchGate: string | null = null;
 
   const persistWorkflowState = () => {
     pi.appendEntry(WORKFLOW_TRACKER_ENTRY_TYPE, handler.getWorkflowState());
@@ -72,6 +76,9 @@ export default function (pi: ExtensionAPI) {
       handler.restoreWorkflowStateFromBranch(ctx.sessionManager.getBranch());
       pendingViolation = null;
       pendingVerificationViolation = null;
+      branchNoticeShown = false;
+      branchConfirmed = false;
+      pendingBranchGate = null;
       updateWidget(ctx);
     });
   }
@@ -107,6 +114,20 @@ export default function (pi: ExtensionAPI) {
       if (path) {
         changed = handler.handleFileWritten(path) || changed;
       }
+
+      if (!branchConfirmed) {
+        const ref = getCurrentGitRef();
+        branchConfirmed = true;
+
+        if (ref) {
+          pendingBranchGate =
+            `⚠️ First write of this session. You're on branch \`${ref}\`.\n` +
+            "Confirm with the user this is the correct branch before continuing, or create a new branch/worktree.";
+        } else {
+          // Not a git repo: disable branch messages silently.
+          branchNoticeShown = true;
+        }
+      }
     }
 
     if (event.toolName === "plan_tracker") {
@@ -127,19 +148,27 @@ export default function (pi: ExtensionAPI) {
       handler.handleReadOrInvestigation("read", path);
     }
 
+    const existingText = event.content
+      .filter((c): c is { type: "text"; text: string } => c.type === "text")
+      .map((c) => c.text)
+      .join("\n");
+    const injected: string[] = [];
+
+    // Layer 1: announce current branch on first tool result in session.
+    if (!branchNoticeShown) {
+      const ref = getCurrentGitRef();
+      if (ref) {
+        injected.push(`📌 Current branch: \`${ref}\``);
+      } else {
+        branchConfirmed = true;
+      }
+      branchNoticeShown = true;
+    }
+
     // Inject violation warning on write/edit
     if ((event.toolName === "write" || event.toolName === "edit") && pendingViolation) {
       const violation = pendingViolation;
-      pendingViolation = null;
-      const warning = formatViolationWarning(violation);
-      const existingText = event.content
-        .filter((c): c is { type: "text"; text: string } => c.type === "text")
-        .map((c) => c.text)
-        .join("\n");
-      updateWidget(ctx);
-      return {
-        content: [{ type: "text", text: `${existingText}\n\n${warning}` }],
-      };
+      injected.push(formatViolationWarning(violation));
     }
     pendingViolation = null;
 
@@ -166,20 +195,25 @@ export default function (pi: ExtensionAPI) {
 
       if (pendingVerificationViolation) {
         const violation = pendingVerificationViolation;
-        pendingVerificationViolation = null;
-        const warning = getVerificationViolationWarning(violation.type, violation.command);
-        const existingText = event.content
-          .filter((c): c is { type: "text"; text: string } => c.type === "text")
-          .map((c) => c.text)
-          .join("\n");
-        updateWidget(ctx);
-        return {
-          content: [{ type: "text", text: `${existingText}\n\n${warning}` }],
-        };
+        injected.push(getVerificationViolationWarning(violation.type, violation.command));
       }
     }
 
+    if ((event.toolName === "write" || event.toolName === "edit") && pendingBranchGate) {
+      injected.push(pendingBranchGate);
+      pendingBranchGate = null;
+    }
+
     pendingVerificationViolation = null;
+
+    if (injected.length > 0) {
+      const parts = [existingText, ...injected].filter((part) => part.trim().length > 0);
+      updateWidget(ctx);
+      return {
+        content: [{ type: "text", text: parts.join("\n\n") }],
+      };
+    }
+
     updateWidget(ctx);
     return undefined;
   });
