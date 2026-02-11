@@ -70,6 +70,7 @@ After all tasks complete and verified:
 **Don't force through blockers** - stop and ask.
 
 ## Remember
+- TDD is the default for production code: failing test first, verify fail, implement, verify pass
 - Review plan critically first
 - Follow plan steps exactly
 - Don't skip verifications

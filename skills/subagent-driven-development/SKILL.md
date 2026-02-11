@@ -242,8 +242,8 @@ Done!
 - **`/skill:requesting-code-review`** - Code review template for reviewer subagents
 - **`/skill:finishing-a-development-branch`** - Complete development after all tasks
 
-**Subagents should use:**
-- **`/skill:test-driven-development`** - Subagents follow TDD for each task
+**Subagents follow by default:**
+- **TDD** - Failing test first for all production code (enforced by workflow-monitor, instructions in implementer prompt)
 
 **Alternative workflow:**
 - **`/skill:executing-plans`** - Use for parallel session instead of same-session execution
