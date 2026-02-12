@@ -55,6 +55,7 @@ describe("branch safety monitor", () => {
 
     const res = await onToolResult(
       {
+        toolCallId: "first-bash",
         toolName: "bash",
         input: { command: "echo hi" },
         content: [{ type: "text", text: "hi" }],
@@ -86,10 +87,14 @@ describe("branch safety monitor", () => {
       ui: { setWidget: () => {} },
     };
 
-    await onToolCall({ toolName: "write", input: { path: "README.md", content: "x" } }, ctx);
+    await onToolCall(
+      { toolCallId: "first-write", toolName: "write", input: { path: "README.md", content: "x" } },
+      ctx
+    );
 
     const res = await onToolResult(
       {
+        toolCallId: "first-write",
         toolName: "write",
         input: { path: "README.md", content: "x" },
         content: [{ type: "text", text: "ok" }],
