@@ -61,9 +61,9 @@ Stop. Read. Understand. Then fix.
 
   if (type === "excessive-fix-attempts") {
     return `
-⚠️ DEBUG WARNING: This is fix attempt #${fixAttempts} for ${file}. Previous attempts failed.
+⚠️ DEBUG WARNING: ${fixAttempts} failed fix attempts on ${file}.
 
-When 3+ fixes fail, this is NOT a failed hypothesis — it's a wrong architecture.
+${fixAttempts} fix attempts haven't resolved the issue. Consider stepping back to investigate root cause.
 
 Pattern indicating architectural problem:
 - Each fix reveals new problems in different places

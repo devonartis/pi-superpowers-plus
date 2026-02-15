@@ -48,14 +48,20 @@ describe("getDebugViolationWarning", () => {
 
   test("returns excessive-fix-attempts warning with count", () => {
     const warning = getDebugViolationWarning("excessive-fix-attempts", "src/foo.ts", 3);
-    expect(warning).toContain("fix attempt #3");
+    expect(warning).toContain("3 failed fix attempts");
     expect(warning).toContain("architecture");
     expect(warning).toContain("human partner");
   });
 
   test("returns excessive-fix-attempts warning with higher count", () => {
     const warning = getDebugViolationWarning("excessive-fix-attempts", "src/foo.ts", 5);
-    expect(warning).toContain("fix attempt #5");
+    expect(warning).toContain("5 failed fix attempts");
+  });
+
+  test("excessive-fix-attempts warning shows correct attempt count", () => {
+    const warning = getDebugViolationWarning("excessive-fix-attempts", "src/foo.ts", 3);
+    expect(warning).toContain("3 failed fix attempts");
+    expect(warning).not.toContain("fix attempt #3");
   });
 });
 
